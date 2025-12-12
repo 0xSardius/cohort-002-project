@@ -8,6 +8,7 @@ import path from "path";
 import { loadChats, loadMemories } from "@/lib/persistence-layer";
 import { CHAT_LIMIT } from "../page";
 import { SideBar } from "@/components/side-bar";
+import { searchWithBM25 } from "../search";
 
 interface Email {
   id: string;
@@ -40,6 +41,11 @@ export default async function SearchPage(props: {
   const perPage = Number(searchParams.perPage) || 10;
 
   const allEmails = await loadEmails();
+
+  const emailsWithScores = await searchWithBM25(
+    query.toLowerCase().split(" "),
+    allEmails
+  );
 
   // Transform emails to match the expected format
   const transformedEmails = allEmails
