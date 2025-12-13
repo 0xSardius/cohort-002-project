@@ -8,7 +8,7 @@ import path from "path";
 import { loadChats, loadMemories } from "@/lib/persistence-layer";
 import { CHAT_LIMIT } from "../page";
 import { SideBar } from "@/components/side-bar";
-import { searchWithBM25 } from "../search";
+import { loadOrGenerateEmbeddings, searchWithBM25 } from "../search";
 
 interface Email {
   id: string;
@@ -42,31 +42,32 @@ export default async function SearchPage(props: {
 
   const allEmails = await loadEmails();
 
+  const embeddings = await loadOrGenerateEmbeddings(allEmails);
+
+  console.log("Email embeddings loaded:", embeddings.length);
+
   const emailsWithScores = await searchWithBM25(
     query.toLowerCase().split(" "),
     allEmails
   );
 
   // Transform emails to match the expected format
-  const transformedEmails = allEmails
-    .map((email) => ({
+  const transformedEmails = emailsWithScores
+    .map(({ email, score }) => ({
       id: email.id,
       from: email.from,
       subject: email.subject,
       preview: email.body.substring(0, 100) + "...",
       content: email.body,
       date: email.timestamp,
+      score: score, // ADDED: Include BM25 score
     }))
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => b.score - a.score);
 
   // Filter emails based on search query
+  // CHANGED: Filter by BM25 score instead of string matching
   const filteredEmails = query
-    ? transformedEmails.filter(
-        (email) =>
-          email.subject.toLowerCase().includes(query.toLowerCase()) ||
-          email.from.toLowerCase().includes(query.toLowerCase()) ||
-          email.content.toLowerCase().includes(query.toLowerCase())
-      )
+    ? transformedEmails.filter((email) => email.score > 0)
     : transformedEmails;
 
   const totalPages = Math.ceil(filteredEmails.length / perPage);
