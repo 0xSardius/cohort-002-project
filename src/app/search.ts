@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import BM25 from "okapibm25";
-import { embedMany } from "ai";
+import { embed, embedMany, cosineSimilarity } from "ai";
 import { google } from "@ai-sdk/google";
 
 const CACHE_DIR = path.join(process.cwd(), "data", "embeddings");
@@ -97,4 +97,26 @@ export async function loadOrGenerateEmbeddings(
   }
 
   return results;
+}
+
+export async function searchWithEmbeddings(query: string, emails: Email[]) {
+  // Load cached embeddings
+  const emailEmbeddings = await loadOrGenerateEmbeddings(emails);
+
+  // Generate query embedding
+  const { embedding: queryEmbedding } = await embed({
+    model: google.textEmbeddingModel("text-embedding-004"),
+    value: query,
+  });
+
+  // calculate simlarity scores
+  const results = emailEmbeddings.map(({ id, embedding }) => {
+    const email = emails.find((e) => e.id === id)!;
+    const score = cosineSimilarity(queryEmbedding, embedding);
+    return { score, email };
+  });
+
+  console.log(`Found ${results.length} results for query: "${query}"`);
+
+  return results.sort((a, b) => b.score - a.score);
 }
