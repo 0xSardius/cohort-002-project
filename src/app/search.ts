@@ -6,6 +6,7 @@ import { google } from "@ai-sdk/google";
 
 const CACHE_DIR = path.join(process.cwd(), "data", "embeddings");
 const CACHE_KEY = "google-text-embedding-004";
+const RRF_K = 60; // rank fusion parameter
 
 const getEmbeddingFilePath = (id: string) =>
   path.join(CACHE_DIR, `${CACHE_KEY}-${id}.json`);
@@ -25,6 +26,39 @@ export interface Email {
   arcId?: string;
   phaseId?: number;
 }
+
+export function reciprocalRankFusion(
+  rankings: { email: Email; score: number }[][]
+): { email: Email; score: number }[] {
+  const rrfScores = new Map<string, number>();
+  const emailMap = new Map<string, Email>();
+
+  // Process each ranking list (BM25 or embeddings)
+  rankings.forEach((ranking) => {
+    ranking.forEach((item, rank) => {
+      const currentScore = rrfScores.get(item.email.id) || 0;
+
+      const contribution = 1 / (RRF_K + rank);
+      rrfScores.set(item.email.id, currentScore + contribution);
+      emailMap.set(item.email.id, item.email);
+    });
+  });
+
+  return Array.from(rrfScores.entries())
+    .sort(([, scoreA], [, scoreB]) => scoreB - scoreA)
+    .map(([emailId, score]) => ({ score, email: emailMap.get(emailId)! }));
+}
+
+export const searchWithRRF = async (query: string, emails: Email[]) => {
+  const bm25Ranking = await searchWithBM25(
+    query.toLowerCase().split(" "),
+    emails
+  );
+  const embeddingsRanking = await searchWithEmbeddings(query, emails);
+  const rrfRanking = reciprocalRankFusion([bm25Ranking, embeddingsRanking]);
+
+  return rrfRanking;
+};
 
 export function searchWithBM25(keywords: string[], emails: Email[]) {
   const corpus = emails.map((email) => `${email.subject} ${email.body}`);

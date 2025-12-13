@@ -8,7 +8,7 @@ import path from "path";
 import { loadChats, loadMemories } from "@/lib/persistence-layer";
 import { CHAT_LIMIT } from "../page";
 import { SideBar } from "@/components/side-bar";
-import { loadEmails, searchWithEmbeddings } from "../search";
+import { loadEmails, searchWithEmbeddings, searchWithRRF } from "../search";
 
 interface Email {
   id: string;
@@ -36,7 +36,7 @@ export default async function SearchPage(props: {
 
   const allEmails = await loadEmails();
 
-  const emailsWithScores = await searchWithEmbeddings(query, allEmails);
+  const emailsWithScores = await searchWithRRF(query, allEmails);
 
   // Transform emails to match the expected format
   const transformedEmails = emailsWithScores
