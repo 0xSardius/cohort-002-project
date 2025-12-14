@@ -150,7 +150,5 @@ export async function searchWithEmbeddings(query: string, emails: Email[]) {
     return { score, email };
   });
 
-  console.log(`Found ${results.length} results for query: "${query}"`);
-
   return results.sort((a, b) => b.score - a.score);
 }

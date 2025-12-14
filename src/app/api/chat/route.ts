@@ -12,9 +12,11 @@ import {
   createUIMessageStreamResponse,
   safeValidateUIMessages,
   streamText,
+  stepCountIs,
   UIMessage,
 } from "ai";
 import { generateTitleForChat } from "./generate-title";
+import { searchTool } from "./search-tool";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -91,8 +93,13 @@ export async function POST(req: Request) {
       }
 
       const result = streamText({
-        model: google("gemini-2.5-flash-lite"),
+        model: google("gemini-2.5-flash"),
         messages: convertToModelMessages(messages),
+        system: "Use your search tool to answer questions.",
+        tools: {
+          search: searchTool,
+        },
+        stopWhen: [stepCountIs(10)],
       });
 
       writer.merge(
