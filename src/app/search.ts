@@ -8,6 +8,7 @@ import {
   getCachedEmbedding,
   writeEmbeddingToCache,
 } from "@/app/embeddings";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
 const CACHE_DIR = path.join(process.cwd(), "data", "embeddings");
 const CACHE_KEY = "google-text-embedding-004";
@@ -29,7 +30,45 @@ export interface Email {
   phaseId?: number;
 }
 
+export type EmailChunk = {
+  id: string;
+  subject: string;
+  chunk: string;
+  index: number;
+  totalChunks: number;
+  from: string;
+  to: string | string[];
+  timestamp: string;
+};
+
 export const emailToText = (email: Email) => `${email.subject} ${email.body}`;
+
+const textSplitter = new RecursiveCharacterTextSplitter({
+  chunkSize: 1000,
+  chunkOverlap: 100,
+  separators: ["\n\n", "\n", " ", ""],
+});
+
+export const chunkEmails = async (emails: Email[]) => {
+  const emailsWithChunks: EmailChunk[] = [];
+  for (const email of emails) {
+    const chunks = await textSplitter.splitText(email.body);
+
+    chunks.forEach((chunk, chunkIndex) => {
+      emailsWithChunks.push({
+        id: email.id,
+        index: chunkIndex,
+        subject: email.subject,
+        chunk: chunk,
+        from: email.from,
+        to: email.to,
+        timestamp: email.timestamp,
+        totalChunks: chunks.length,
+      });
+    });
+  }
+  return emailsWithChunks;
+};
 
 export function reciprocalRankFusion(
   rankings: { email: Email; score: number }[][]
