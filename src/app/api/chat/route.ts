@@ -113,7 +113,7 @@ export async function POST(req: Request) {
               </the-ask>
           `,
         tools: {
-          search: searchTool,
+          search: searchTool(messages),
         },
         stopWhen: [stepCountIs(10)],
       });
