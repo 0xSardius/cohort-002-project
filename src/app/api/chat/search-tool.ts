@@ -1,5 +1,6 @@
 import {
   loadEmails,
+  chunkEmails,
   reciprocalRankFusion,
   searchWithBM25,
   searchWithEmbeddings,
@@ -28,9 +29,12 @@ export const searchTool = tool({
 
     const emails = await loadEmails();
 
-    const bm25Results = keywords ? await searchWithBM25(keywords, emails) : [];
+    const emailChunks = await chunkEmails(emails);
+    const bm25Results = keywords
+      ? await searchWithBM25(keywords, emailChunks)
+      : [];
     const embeddingsResults = searchQuery
-      ? await searchWithEmbeddings(searchQuery, emails)
+      ? await searchWithEmbeddings(searchQuery, emailChunks)
       : [];
     const rrfResults = reciprocalRankFusion([
       bm25Results.slice(0, 30),
@@ -44,7 +48,7 @@ export const searchTool = tool({
         from: r.email.from,
         to: r.email.to,
         subject: r.email.subject,
-        body: r.email.body,
+        body: r.email.chunk,
         timestamp: r.email.timestamp,
         score: r.score,
       }));
