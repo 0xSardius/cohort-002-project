@@ -175,7 +175,7 @@ export function reciprocalRankFusion(
   rankings.forEach((ranking) => {
     ranking.forEach((item, rank) => {
       const emailChunkId = `${item.email.id}-${item.email.index}`;
-      const currentScore = rrfScores.get(item.email.id) || 0;
+      const currentScore = rrfScores.get(emailChunkId) || 0;
 
       const contribution = 1 / (RRF_K + rank);
       rrfScores.set(emailChunkId, currentScore + contribution);
