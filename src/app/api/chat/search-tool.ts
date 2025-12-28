@@ -70,6 +70,8 @@ export const searchTool = (messages: UIMessage[]) =>
         subject: r.email.subject,
         body: r.email.chunk,
         score: r.score,
+        from: r.email.from,
+        to: r.email.to,
       }));
 
       console.log("Top emails:", topEmails.length);

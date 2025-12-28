@@ -44,6 +44,9 @@ import { Fragment, startTransition, useState } from "react";
 import type { MyMessage } from "./api/chat/route";
 import { useFocusWhenNoChatIdPresent } from "./use-focus-chat-when-new-chat-button-pressed";
 
+import { Tool, ToolContent, ToolHeader } from "@/components/ai-elements/tool";
+import { Button } from "@/components/ui/button";
+
 export const Chat = (props: { chat: DB.Chat | null }) => {
   const [backupChatId, setBackupChatId] = useState(crypto.randomUUID());
   const [input, setInput] = useState("");
@@ -172,6 +175,68 @@ export const Chat = (props: { chat: DB.Chat | null }) => {
                         <ReasoningTrigger />
                         <ReasoningContent>{part.text}</ReasoningContent>
                       </Reasoning>
+                    );
+                  case "tool-search":
+                    return (
+                      <Tool
+                        key={`${message.id}-${i}`}
+                        className="w-full"
+                        defaultOpen={false}
+                      >
+                        <ToolHeader
+                          title="Search"
+                          type={part.type}
+                          state={part.state}
+                        />
+                        <ToolContent>
+                          <div className="space-y-4 p-4">
+                            {/* Input parameters */}
+                            {part.input && (
+                              <div className="space-y-2">
+                                <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+                                  Parameters
+                                </h4>
+                                <div className="text-sm">
+                                  {part.input.keywords && (
+                                    <div>
+                                      <span className="font-medium">
+                                        Keywords:
+                                      </span>{" "}
+                                      {part.input.keywords.join(", ")}
+                                    </div>
+                                  )}
+                                  {part.input.searchQuery && (
+                                    <div>
+                                      <span className="font-medium">
+                                        Search Query:
+                                      </span>{" "}
+                                      {part.input.searchQuery}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Email results */}
+                            {part.state === "output-available" &&
+                              part.output && (
+                                <EmailResultsGrid emails={part.output.emails} />
+                              )}
+
+                            {/* Error state */}
+                            {part.state === "output-error" && (
+                              <div className="space-y-2">
+                                <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+                                  Error
+                                </h4>
+                                <div className="rounded-md bg-destructive/10 p-3 text-destructive text-sm">
+                                  {part.errorText}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </ToolContent>
+                      </Tool>
                     );
                   default:
                     return null;
