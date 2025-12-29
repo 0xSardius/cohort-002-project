@@ -1,15 +1,12 @@
 // src/app/rerank.ts
 import { google } from "@ai-sdk/google";
 import { generateObject, ModelMessage } from "ai";
+import { EmailChunk } from "@/app/search";
 
 import { z } from "zod";
 
 type ResultWithEmail = {
-  email: {
-    id: string;
-    subject: string;
-    chunk: string;
-  };
+  email: EmailChunk;
   score: number;
 };
 

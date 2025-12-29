@@ -282,3 +282,55 @@ export const Chat = (props: { chat: DB.Chat | null }) => {
     </div>
   );
 };
+
+const EmailResultsGrid = ({
+  emails,
+}: {
+  emails: Array<{
+    id: string;
+    subject: string;
+    from: string;
+    to: string | string[];
+    body: string;
+    score: number;
+  }>;
+}) => {
+  const [showAll, setShowAll] = useState(false);
+  const displayedEmails = showAll ? emails : emails.slice(0, 8);
+  const hasMore = emails.length > 8;
+
+  return (
+    <div className="space-y-2">
+      <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+        Results ({emails.length} {emails.length === 1 ? "email" : "emails"})
+      </h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {displayedEmails.map((email, idx) => (
+          <div
+            key={idx}
+            className="rounded-md border bg-muted/30 p-3 text-sm space-y-1"
+          >
+            <div className="font-medium">{email.subject}</div>
+            <div className="text-muted-foreground text-xs">
+              <span className="font-medium">From:</span> {email.from}
+            </div>
+            <div className="text-muted-foreground text-xs">
+              <span className="font-medium">To:</span>{" "}
+              {Array.isArray(email.to) ? email.to.join(", ") : email.to}
+            </div>
+          </div>
+        ))}
+      </div>
+      {hasMore && !showAll && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowAll(true)}
+          className="w-full"
+        >
+          Show more ({emails.length - 8} more)
+        </Button>
+      )}
+    </div>
+  );
+};
