@@ -238,6 +238,100 @@ export const Chat = (props: { chat: DB.Chat | null }) => {
                         </ToolContent>
                       </Tool>
                     );
+                  case "tool-filterEmails":
+                    return (
+                      <Tool
+                        key={`${message.id}-${i}`}
+                        className="w-full"
+                        defaultOpen={false}
+                      >
+                        <ToolHeader
+                          title="Filter Emails"
+                          type={part.type}
+                          state={part.state}
+                        />
+                        <ToolContent>
+                          <div className="space-y-4 p-4">
+                            {/* Input parameters */}
+                            {part.input && (
+                              <div className="space-y-2">
+                                <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+                                  Filters
+                                </h4>
+                                <div className="text-sm space-y-1">
+                                  {part.input.from && (
+                                    <div>
+                                      <span className="font-medium">From:</span>{" "}
+                                      {part.input.from}
+                                    </div>
+                                  )}
+                                  {part.input.to && (
+                                    <div>
+                                      <span className="font-medium">To:</span>{" "}
+                                      {part.input.to}
+                                    </div>
+                                  )}
+                                  {part.input.contains && (
+                                    <div>
+                                      <span className="font-medium">
+                                        Contains:
+                                      </span>{" "}
+                                      {part.input.contains}
+                                    </div>
+                                  )}
+                                  {part.input.before && (
+                                    <div>
+                                      <span className="font-medium">
+                                        Before:
+                                      </span>{" "}
+                                      {new Date(
+                                        part.input.before
+                                      ).toLocaleString()}
+                                    </div>
+                                  )}
+                                  {part.input.after && (
+                                    <div>
+                                      <span className="font-medium">
+                                        After:
+                                      </span>{" "}
+                                      {new Date(
+                                        part.input.after
+                                      ).toLocaleString()}
+                                    </div>
+                                  )}
+                                  {part.input.limit && (
+                                    <div>
+                                      <span className="font-medium">
+                                        Limit:
+                                      </span>{" "}
+                                      {part.input.limit}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Email results */}
+                            {part.state === "output-available" &&
+                              part.output && (
+                                <EmailResultsGrid emails={part.output.emails} />
+                              )}
+
+                            {/* Error state */}
+                            {part.state === "output-error" && (
+                              <div className="space-y-2">
+                                <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+                                  Error
+                                </h4>
+                                <div className="rounded-md bg-destructive/10 p-3 text-destructive text-sm">
+                                  {part.errorText}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </ToolContent>
+                      </Tool>
+                    );
                   default:
                     return null;
                 }
@@ -292,7 +386,6 @@ const EmailResultsGrid = ({
     from: string;
     to: string | string[];
     body: string;
-    score: number;
   }>;
 }) => {
   const [showAll, setShowAll] = useState(false);
