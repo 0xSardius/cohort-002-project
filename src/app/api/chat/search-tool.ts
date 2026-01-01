@@ -14,7 +14,7 @@ const NUMBER_PASSED_TO_RERANKER = 30;
 export const searchTool = (messages: UIMessage[]) =>
   tool({
     description:
-      "Search emails using both keyword search and semantic search. Returns most relevant emails ranked by reciprocal rank fusion and then reranked by an LLM for optimal relevance.",
+      "Search emails using both keyword and semantic search. Returns metadata with snippets only - use getEmails tool to fetch full content of specific emails.",
     inputSchema: z.object({
       keywords: z
         .array(z.string())
