@@ -9,12 +9,29 @@ export const getEmailsTool = tool({
     ids: z
       .array(z.string())
       .describe("Array of email IDs to fetch full content for"),
+    includeThread: z
+      .boolean()
+      .describe(
+        "If true, fetch entire conversation threads for the specified emails"
+      )
+      .default(false),
   }),
-  execute: async ({ ids }) => {
+  execute: async ({ ids, includeThread }) => {
     console.log("Get emails params:", { ids });
     const emails = await loadEmails();
-    const results = emails.filter((email) => ids.includes(email.id));
-    console.log("Found emails:", results.length);
+    let results = emails.filter((email) => ids.includes(email.id));
+    if (includeThread && results.length > 0) {
+      // Get all unique threadIds from the requested emails
+      const threadIds = [...new Set(results.map((email) => email.threadId))];
+
+      // Get all emails that belong to these threads
+      results = emails.filter((email) => threadIds.includes(email.threadId));
+
+      // Sort by timestamp to maintain conversation order
+      results.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+    }
+
+    console.log(`Returning ${results.length} emails`);
 
     return {
       emails: results.map((email) => ({
