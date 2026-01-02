@@ -437,11 +437,11 @@ const EmailResultsGrid = ({
 }: {
   emails: Array<{
     id: string;
-    subject?: string;
+    subject: string;
     from: string;
     to: string | string[];
-    body?: string;
     snippet?: string;
+    timestamp?: string;
   }>;
 }) => {
   const [showAll, setShowAll] = useState(false);
@@ -459,9 +459,7 @@ const EmailResultsGrid = ({
             key={idx}
             className="rounded-md border bg-muted/30 p-3 text-sm space-y-1"
           >
-            {email.subject && (
-              <div className="font-medium">{email.subject}</div>
-            )}
+            <div className="font-medium">{email.subject}</div>
             <div className="text-muted-foreground text-xs">
               <span className="font-medium">From:</span> {email.from}
             </div>
@@ -470,7 +468,7 @@ const EmailResultsGrid = ({
               {Array.isArray(email.to) ? email.to.join(", ") : email.to}
             </div>
             {email.snippet && (
-              <div className="text-muted-foreground text-xs mt-1">
+              <div className="text-muted-foreground text-xs mt-2 pt-2 border-t">
                 {email.snippet}
               </div>
             )}
@@ -497,27 +495,33 @@ const FullEmailDisplay = ({
   emails: Array<{
     id: string;
     threadId?: string;
+    subject: string;
     from: string;
     to: string | string[];
-    timestamp: string;
+    timestamp?: string;
     body: string;
-    cc?: string[];
-    inReplyTo?: string;
-    references?: string[];
   }>;
 }) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-        Full Email Content ({emails.length}{" "}
-        {emails.length === 1 ? "email" : "emails"})
+        Full Content ({emails.length} {emails.length === 1 ? "email" : "emails"}
+        )
       </h4>
       <div className="space-y-4">
         {emails.map((email, idx) => (
           <div
-            key={email.id || idx}
-            className="rounded-md border bg-muted/30 p-4 text-sm space-y-2"
+            key={idx}
+            className="rounded-md border bg-muted/30 p-4 text-sm space-y-3"
           >
+            <div>
+              <div className="font-medium text-base">{email.subject}</div>
+              {email.timestamp && (
+                <div className="text-muted-foreground text-xs mt-1">
+                  {new Date(email.timestamp).toLocaleString()}
+                </div>
+              )}
+            </div>
             <div className="space-y-1">
               <div className="text-muted-foreground text-xs">
                 <span className="font-medium">From:</span> {email.from}
@@ -526,18 +530,9 @@ const FullEmailDisplay = ({
                 <span className="font-medium">To:</span>{" "}
                 {Array.isArray(email.to) ? email.to.join(", ") : email.to}
               </div>
-              {email.cc && email.cc.length > 0 && (
-                <div className="text-muted-foreground text-xs">
-                  <span className="font-medium">CC:</span> {email.cc.join(", ")}
-                </div>
-              )}
-              <div className="text-muted-foreground text-xs">
-                <span className="font-medium">Date:</span>{" "}
-                {new Date(email.timestamp).toLocaleString()}
-              </div>
             </div>
-            <div className="border-t pt-2 mt-2">
-              <div className="whitespace-pre-wrap text-sm">{email.body}</div>
+            <div className="pt-3 border-t whitespace-pre-wrap">
+              {email.body}
             </div>
           </div>
         ))}

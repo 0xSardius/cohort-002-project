@@ -20,6 +20,7 @@ export const getEmailsTool = tool({
       emails: results.map((email) => ({
         id: email.id,
         threadId: email.threadId,
+        subject: email.subject,
         from: email.from,
         to: email.to,
         timestamp: email.timestamp,
