@@ -332,6 +332,61 @@ export const Chat = (props: { chat: DB.Chat | null }) => {
                         </ToolContent>
                       </Tool>
                     );
+                  case "tool-getEmails":
+                    return (
+                      <Tool
+                        key={`${message.id}-${i}`}
+                        className="w-full"
+                        defaultOpen={true}
+                      >
+                        <ToolHeader
+                          title="Get Emails"
+                          type={part.type}
+                          state={part.state}
+                        />
+                        <ToolContent>
+                          <div className="space-y-4 p-4">
+                            {/* Input parameters */}
+                            {part.input && (
+                              <div className="space-y-2">
+                                <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+                                  Parameters
+                                </h4>
+                                <div className="text-sm space-y-1">
+                                  {part.input.ids && (
+                                    <div>
+                                      <span className="font-medium">
+                                        Email IDs:
+                                      </span>{" "}
+                                      {part.input.ids.length} email
+                                      {part.input.ids.length !== 1 ? "s" : ""}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Full email content */}
+                            {part.state === "output-available" &&
+                              part.output && (
+                                <FullEmailDisplay emails={part.output.emails} />
+                              )}
+
+                            {/* Error state */}
+                            {part.state === "output-error" && (
+                              <div className="space-y-2">
+                                <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+                                  Error
+                                </h4>
+                                <div className="rounded-md bg-destructive/10 p-3 text-destructive text-sm">
+                                  {part.errorText}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </ToolContent>
+                      </Tool>
+                    );
                   default:
                     return null;
                 }
@@ -382,10 +437,11 @@ const EmailResultsGrid = ({
 }: {
   emails: Array<{
     id: string;
-    subject: string;
+    subject?: string;
     from: string;
     to: string | string[];
-    body: string;
+    body?: string;
+    snippet?: string;
   }>;
 }) => {
   const [showAll, setShowAll] = useState(false);
@@ -403,7 +459,9 @@ const EmailResultsGrid = ({
             key={idx}
             className="rounded-md border bg-muted/30 p-3 text-sm space-y-1"
           >
-            <div className="font-medium">{email.subject}</div>
+            {email.subject && (
+              <div className="font-medium">{email.subject}</div>
+            )}
             <div className="text-muted-foreground text-xs">
               <span className="font-medium">From:</span> {email.from}
             </div>
@@ -411,6 +469,11 @@ const EmailResultsGrid = ({
               <span className="font-medium">To:</span>{" "}
               {Array.isArray(email.to) ? email.to.join(", ") : email.to}
             </div>
+            {email.snippet && (
+              <div className="text-muted-foreground text-xs mt-1">
+                {email.snippet}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -424,6 +487,61 @@ const EmailResultsGrid = ({
           Show more ({emails.length - 8} more)
         </Button>
       )}
+    </div>
+  );
+};
+
+const FullEmailDisplay = ({
+  emails,
+}: {
+  emails: Array<{
+    id: string;
+    threadId?: string;
+    from: string;
+    to: string | string[];
+    timestamp: string;
+    body: string;
+    cc?: string[];
+    inReplyTo?: string;
+    references?: string[];
+  }>;
+}) => {
+  return (
+    <div className="space-y-4">
+      <h4 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
+        Full Email Content ({emails.length}{" "}
+        {emails.length === 1 ? "email" : "emails"})
+      </h4>
+      <div className="space-y-4">
+        {emails.map((email, idx) => (
+          <div
+            key={email.id || idx}
+            className="rounded-md border bg-muted/30 p-4 text-sm space-y-2"
+          >
+            <div className="space-y-1">
+              <div className="text-muted-foreground text-xs">
+                <span className="font-medium">From:</span> {email.from}
+              </div>
+              <div className="text-muted-foreground text-xs">
+                <span className="font-medium">To:</span>{" "}
+                {Array.isArray(email.to) ? email.to.join(", ") : email.to}
+              </div>
+              {email.cc && email.cc.length > 0 && (
+                <div className="text-muted-foreground text-xs">
+                  <span className="font-medium">CC:</span> {email.cc.join(", ")}
+                </div>
+              )}
+              <div className="text-muted-foreground text-xs">
+                <span className="font-medium">Date:</span>{" "}
+                {new Date(email.timestamp).toLocaleString()}
+              </div>
+            </div>
+            <div className="border-t pt-2 mt-2">
+              <div className="whitespace-pre-wrap text-sm">{email.body}</div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
